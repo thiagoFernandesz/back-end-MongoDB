@@ -1,26 +1,45 @@
-const jwt = require('jsonwebtoken');
-const authConfig = require('../config/auth.json')
+/* Os códigos de status das respostas HTTP indicam se uma requisição HTTP foi corretamente concluída. 
+As respostas são agrupadas em cinco classes:
+  1 - Respostas de informação (100-199),
+  2 - Respostas de sucesso (200-299),
+  3 - Redirecionamentos (300-399)
+  4 - Erros do cliente (400-499)
+  5 - Erros do servidor (500-599).*/
+const HttpStatus = require('http-status')
+// Criação de dados com assinatura opcional e/ou criptografia.
+const jwt = require('jsonwebtoken')
 
-module.exports = (req, res, next ) => {
-    const authHeader = req.headers.authorization;
+const auth = require('../config/auth.json')
 
-    if(!authHeader)
-        return res.status(401).send({ error: 'Nenhum token providenciado'});
+// Validações do token (Se existe, se está formatado corretamente, se é valido).
+module.exports = function (req, res, next) {
+  const authHeader = req.headers.authorization
 
-    const parts = authHeader.split(' ');
+  if (!authHeader)
+    return res
+      .status(HttpStatus.UNAUTHORIZED)
+      .send({ error: 'Token não Informado!' })
 
-    if(!parts.lenght === 2)
-        return res.status(401).send({ error: 'Erro no token'});
+  const partsToken = authHeader.split(' ')
 
-    const [ scheme, token ] = parts;
+  if (!partsToken.length === 2)
+    return res.status(HttpStatus.UNAUTHORIZED).send({ error: 'Erro no Token!' })
 
-    if (!/^Bearer$/i.test(scheme))
-        return res.status(401).send({ error: "Token mal formatado"});
+  const [part, token] = partsToken
 
-    jwt.verify(token, authConfig.secret, (err, decoded) => {
-        if(err) return res.status(401).send({ error: 'Token inválido'});
+  if (!/^Bearer$/i.test(part))
+    return res
+      .status(HttpStatus.UNAUTHORIZED)
+      .send({ error: 'Erro de Formação no Token' })
 
-        req.userId = decoded.id;
-        return next();
-    });
-};
+  jwt.verify(token, auth.secret, function (err, codeUser) {
+    if (err)
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .send({ error: 'Token invalido!' })
+
+    req.userId = codeUser.id
+
+    return next()
+  })
+}

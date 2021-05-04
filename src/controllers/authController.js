@@ -1,59 +1,97 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+/* Os códigos de status das respostas HTTP indicam se uma requisição HTTP foi corretamente concluída. 
+As respostas são agrupadas em cinco classes:
+  1 - Respostas de informação (100-199),
+  2 - Respostas de sucesso (200-299),
+  3 - Redirecionamentos (300-399)
+  4 - Erros do cliente (400-499)
+  5 - Erros do servidor (500-599).*/
+const HttpStatus = require('http-status')
+// Método de criptografia do tipo hash para senhas.
+const bcrypt = require('bcrypt')
+// Framework para aplicações web para Node.js, feito para otimizar a construção de aplicações web e API's.
+const express = require('express')
+// Criação de dados com assinatura opcional e/ou criptografia.
+const jwt = require('jsonwebtoken')
 
-const authConfig = require('../config/auth.json')
+const authConfig = require('../config/auth')
+const User = require('../models/User')
+const router = express.Router()
 
-const User = require('../models/User');
-
-const router = express.Router();
-
-function generateToken(params = {}){
-    return jwt.sign( params , authConfig.secret, {
-        expiresIn: 86400,
-    });
-
+// Gera um token com jwt (criptografia) usando o secret gerado no auth.json.
+function gerarToken(params = {}) {
+  return jwt.sign(params, authConfig.secret, {
+    expiresIn: 86400,
+  })
 }
 
-router.post('/register', async (req, res) => {
-    const { email } = req.body;
+// Rota de cadastro de um novo usuário.
+router.post('/cadastro', async function (req, res) {
+  try {
+    const { email } = req.body
+    const { cpf } = req.body
 
-    try{
-    
-        if(await User.findOne({ email }))
-            return res.status(400).send({ error: 'Usuário já existe'});
+    if (await User.findOne({ email }))
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .send({ error: 'Email já existente' })
 
-        const user = await User.create(req.body);
+    if (await User.findOne({ cpf }))
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .send({ error: 'CPF já existente' })
 
-        user.password = undefined;
+    const newUser = new User({
+      name: req.body.name,
+      cpf: req.body.cpf,
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, 10),
+      level: 1,
+    })
 
-        return res.send({ 
-            user,
-            token: generateToken({id: user.id}), 
-        });
+    await newUser.save()
+
+    newUser.password = undefined
+
+    return res
+      .status(HttpStatus.CREATED)
+      .send({ newUser, token: gerarToken({ id: newUser.id }) })
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .send({ error: 'Usuário não pode ser cadastrado!' })
+  }
+})
+
+// Rota de login do usuário.
+router.post('/login', async function (req, res) {
+  const { password } = req.body
+  const { usuario } = req.body
+
+  var user = await User.findOne({ email: usuario }).select('+password')
+  if (!user) {
+    user = await User.findOne({ cpf: usuario }).select('+password')
+
+    if (!user) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .send({ error: 'Usuário não encontrado!' })
     }
-    catch ( err ) {
-        return res.status(400).send({error: 'Falha na registração'});
-    }
-});
+  }
 
-router.post('/authenticate', async (req, res) => {
-    const { email, password } = req.body;
+  if (!(await bcrypt.compare(password, user.password)))
+    return res.status(HttpStatus.BAD_REQUEST).send({ error: 'Senha invalida!' })
 
-    const user = await User.findOne({ email }).select('+password');
+  if (user.level === 0) {
+    return res
+      .status(HttpStatus.BAD_REQUEST)
+      .send({ error: 'Esse Usuário foi desativado!' })
+  }
 
-    if (!user)
-        return res.status(400).send({error: 'Usuário não encontrado'});
+  user.password = undefined
 
-    if (!await bcrypt.compare(password, user.password)) 
-        return res.status(400).send({error: 'Senha inválida'});
+  res.send({ user, token: gerarToken({ id: user.id }) })
+})
 
-    user.password = undefined;
-
-    res.send({ 
-        user, 
-        token: generateToken({id: user.id}),
-    });
-});
-
-module.exports = app => app.use('/auth', router);
+// Exportação da rota "mestra", EX: ...../auth/login...
+module.exports = (app) => app.use('/auth', router)
