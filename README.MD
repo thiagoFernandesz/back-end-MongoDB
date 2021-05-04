@@ -23,27 +23,21 @@ $ nodemon src/index.js
 
 ### Rotas para a utilização
 
-```
-http://localhost:3000/auth/login (Faz o login no sistema utilizando o Email ou CPF). [Método POST]
-```
-```
-http://localhost:3000/auth/cadastro (Cadastrar uma conta no aplicativo utilizando o Nome, Cpf, E-mail e Senha). [Método POST]
-```
-```
-http://localhost:3000/application/usuarios (O administrador com nível de acesso 999 pode buscar os usuários cadastrados). [Método GET]
-```
-```
-http://localhost:3000/application/:idUser (O administrador com nível de acesso 999 pode listar um usuário específico). [Método GET]
-```
-```
-http://localhost:3000/application/:idUser (O administrador com nível de acesso 999 pode atualizar as informações de um usuário específico). [Método PUT]
-```
-```
-http://localhost:3000/application/desativa/:userId (O administrador com nível de acesso 999 pode setar o usuário como desativado, colocando o nível de acesso dele em 0). [Método PUT]
-```
-```
-http://localhost:3000/application/ativa/:userId (O administrador com nível de acesso 999 pode setar o usuário como ativado, colocando o nível de acesso dele em 1). [Método PUT]
-```
+
+- http://localhost:3000/auth/login (Faz o login no sistema utilizando o Email ou CPF). [Método POST]
+
+
+- http://localhost:3000/auth/cadastro (Cadastrar uma conta no aplicativo utilizando o Nome, Cpf, E-mail e Senha). [Método POST]
+
+- http://localhost:3000/application/usuarios (O administrador com nível de acesso 999 pode buscar os usuários cadastrados). [Método GET]
+
+- http://localhost:3000/application/:idUser (O administrador com nível de acesso 999 pode listar um usuário específico). [Método GET]
+
+- http://localhost:3000/application/:idUser (O administrador com nível de acesso 999 pode atualizar as informações de um usuário específico). [Método PUT]
+
+- http://localhost:3000/application/desativa/:userId (O administrador com nível de acesso 999 pode setar o usuário como desativado, colocando o nível de acesso dele em 0). [Método PUT]
+
+- http://localhost:3000/application/ativa/:userId (O administrador com nível de acesso 999 pode setar o usuário como ativado, colocando o nível de acesso dele em 1). [Método PUT]
 
 ## Autores
 
