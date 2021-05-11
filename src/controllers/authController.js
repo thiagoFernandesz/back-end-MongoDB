@@ -27,6 +27,7 @@ function gerarToken(params = {}) {
 // Rota de cadastro de um novo usuário.
 router.post('/cadastro', async function (req, res) {
   try {
+    console.log()
     const { email } = req.body
     const { cpf } = req.body
 
@@ -51,15 +52,13 @@ router.post('/cadastro', async function (req, res) {
     await newUser.save()
 
     newUser.password = undefined
-
+  
     return res
       .status(HttpStatus.CREATED)
       .send({ newUser, token: gerarToken({ id: newUser.id }) })
   } catch (err) {
     console.log(err);
-    return res
-      .status(HttpStatus.INTERNAL_SERVER_ERROR)
-      .send({ error: 'Usuário não pode ser cadastrado!' })
+    return res.send({ error: 'Usuário não pode ser cadastrado!' })
   }
 })
 
