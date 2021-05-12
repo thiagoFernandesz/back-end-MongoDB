@@ -51,7 +51,7 @@ router.get('/:idUser', async function (req, res) {
 })
 
 // Rota para editar um usuário.
-router.put('/:idUser', async function (req, res) {
+router.put('/alter/:idUser', async function (req, res) {
   try {
     const newData = req.body
 
