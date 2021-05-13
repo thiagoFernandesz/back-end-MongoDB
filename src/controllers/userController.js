@@ -29,7 +29,7 @@ router.get('/usuarios', async function (req, res) {
 
     const users = await User.find()
 
-    return res.send( users )
+    return res.send({ users })
   } catch (err) {
     return res
       .status(HttpStatus.BAD_REQUEST)
@@ -53,23 +53,22 @@ router.get('/:idUser', async function (req, res) {
 // Rota para editar um usuário.
 router.put('/alter/:idUser', async function (req, res) {
   try {
-    const newData = req.body
-
+    const newData = req.body;
+    //atualizando e retornando usuario atualizado
     if (newData.password)
-      newData.password = await bcrypt.hashSync(req.body.password, 10)
-
+      newData.password = await bcrypt.hashSync(req.body.password, 10);
     const usuario = await User.findByIdAndUpdate(req.params.idUser, newData, {
       new: true,
-    })
+    });
 
-    await usuario.save()
-    return res.send({ usuario })
+    await usuario.save();
+    console.log('AQUIIIIIIIIIIIIIIIIIII',usuario)
+    return res.send({ usuario });
   } catch (err) {
-    return res
-      .status(HttpStatus.BAD_REQUEST)
-      .send({ error: 'Erro ao atualizar usuário!' })
+    console.log(err);
+    return res.send({ error: 'Erro ao atualizar usuário!' });
   }
-})
+});
 
 // Rota para desativar um usuário: level 0.
 router.put('/desativa/:userId', async function (req, res) {
